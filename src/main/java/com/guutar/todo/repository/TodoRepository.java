@@ -17,10 +17,24 @@ public class TodoRepository {
     }
 
     public List<Todo> findAll() {
-        return jdbc.query("SELECT * FROM todos", (rs, rowNum) ->
-                new Todo(rs.getInt("id"),
+        return jdbc.query(
+                connection -> {
+                    try {
+                        // Hold the connection so Active > 0 is visible
+                        Thread.sleep(3000); // 3 seconds (TEST ONLY)
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+
+                    return connection.prepareStatement("SELECT * FROM todos");
+                },
+                (rs, rowNum)
+                -> new Todo(
+                        rs.getInt("id"),
                         rs.getString("title"),
-                        rs.getBoolean("done")));
+                        rs.getBoolean("done")
+                )
+        );
     }
 
     public Todo save(Todo todo) {
